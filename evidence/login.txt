@@ -1,0 +1,9 @@
+﻿Task 8: User Login
+===================
+
+Command:
+curl.exe -s -X POST http://localhost:5000/customer/login -H "Content-Type: application/json" -d '{\"username\":\"testuser\",\"password\":\"testpass123\"}'
+
+Output:
+{"message":"User successfully logged in","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoidGVzdHBhc3MxMjMiLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaWF0IjoxNzkyNDA0NDQ3LCJleHAiOjE3OTI0MDgwNDd9.TaVszm9EpfFLZZr9JU23oTeDSj-BFYN2mFCPXhFQ2jM"}
+

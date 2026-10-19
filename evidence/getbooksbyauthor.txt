@@ -1,0 +1,9 @@
+﻿Task 4: Get Books by Author
+============================
+
+Command:
+curl.exe -s http://localhost:5000/author/Chinua%20Achebe
+
+Output:
+{"booksbyauthor":[{"isbn":"1","title":"Things Fall Apart","reviews":{}}]}
+
