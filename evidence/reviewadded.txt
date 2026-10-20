@@ -9,12 +9,12 @@ Output:
 
 Verification - Get review after adding:
 Command: curl.exe -s http://localhost:5000/review/1
-Output: {"testuser":"This is a great book!"}
+Output: {"newuser_2516":"This is a great book!"}
 
 Command (Update Review):
 curl.exe -s -X PUT "http://localhost:5000/customer/auth/review/1?review=Updated+review+for+this+classic+novel" -H "Authorization: Bearer <token>"
 Output: {"message":"The review for the book with ISBN 1 has been added/updated."}
 
 Verification - Get review after update:
-Output: {"testuser":"Updated review for this classic novel"}
-
+Command: curl.exe -s http://localhost:5000/review/1
+Output: {"newuser_2516":"Updated review for this classic novel"}

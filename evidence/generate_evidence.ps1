@@ -2,31 +2,54 @@
 # Run this with the server already running on port 5000
 
 $BASE = "http://localhost:5000"
-$EVIDENCE = "d:\Coding\College\Coursera\Final Project\evidence"
+$EVIDENCE_DIRS = @(
+    "d:\Coding\College\Coursera\Final Project\evidence",
+    "d:\Coding\College\Coursera\Final Project\submission_evidence"
+)
+
+foreach ($dir in $EVIDENCE_DIRS) {
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+}
+
+function Save-EvidenceFile {
+    param(
+        [string]$FileName,
+        [string]$Content
+    )
+    foreach ($dir in $EVIDENCE_DIRS) {
+        Set-Content -Path "$dir\$FileName" -Value $Content -Encoding UTF8
+    }
+}
 
 # ============================
 # 1. githubrepo.txt
 # ============================
 Write-Host "Generating githubrepo.txt..."
+$ghCmd = "curl.exe -s https://api.github.com/repos/ajstarks117/expressBookReviews | jq '.parent.full_name'"
+$ghResponse = (curl.exe -s "https://api.github.com/repos/ajstarks117/expressBookReviews" | jq '.parent.full_name').Trim()
+
 $ghOutput = @"
 Task 1: GitHub Repository Verification
 =======================================
 
 Command:
-curl.exe -s https://api.github.com/repos/ajstarks117/expressBookReviews | findstr /i "fork full_name parent"
+$ghCmd
 
 Output:
+$ghResponse
+
+Verification: The repository ajstarks117/expressBookReviews is a fork of ibm-developer-skills-network/expressBookReviews.
+Repository URL: https://github.com/ajstarks117/expressBookReviews
 "@
-$ghResponse = curl.exe -s "https://api.github.com/repos/ajstarks117/expressBookReviews"
-$ghOutput += "`n$ghResponse`n"
-$ghOutput += "`nVerification: The repository ajstarks117/expressBookReviews is a fork of ibm-developer-skills-network/expressBookReviews.`n"
-$ghOutput += "Repository URL: https://github.com/ajstarks117/expressBookReviews`n"
-Set-Content -Path "$EVIDENCE\githubrepo.txt" -Value $ghOutput -Encoding UTF8
+Save-EvidenceFile -FileName "githubrepo.txt" -Content $ghOutput
 
 # ============================
 # 2. getallbooks.txt
 # ============================
 Write-Host "Generating getallbooks.txt..."
+$allBooksRaw = (curl.exe -s "$BASE/")
 $allBooksOutput = @"
 Task 2: Get All Books
 =====================
@@ -35,15 +58,15 @@ Command:
 curl.exe -s http://localhost:5000/
 
 Output:
+$allBooksRaw
 "@
-$allBooksResponse = curl.exe -s "$BASE/"
-$allBooksOutput += "`n$allBooksResponse`n"
-Set-Content -Path "$EVIDENCE\getallbooks.txt" -Value $allBooksOutput -Encoding UTF8
+Save-EvidenceFile -FileName "getallbooks.txt" -Content $allBooksOutput
 
 # ============================
 # 3. getbooksbyISBN.txt
 # ============================
 Write-Host "Generating getbooksbyISBN.txt..."
+$isbnRaw = (curl.exe -s "$BASE/isbn/1")
 $isbnOutput = @"
 Task 3: Get Book by ISBN
 ========================
@@ -52,15 +75,15 @@ Command:
 curl.exe -s http://localhost:5000/isbn/1
 
 Output:
+$isbnRaw
 "@
-$isbnResponse = curl.exe -s "$BASE/isbn/1"
-$isbnOutput += "`n$isbnResponse`n"
-Set-Content -Path "$EVIDENCE\getbooksbyISBN.txt" -Value $isbnOutput -Encoding UTF8
+Save-EvidenceFile -FileName "getbooksbyISBN.txt" -Content $isbnOutput
 
 # ============================
 # 4. getbooksbyauthor.txt
 # ============================
 Write-Host "Generating getbooksbyauthor.txt..."
+$authorRaw = (curl.exe -s "$BASE/author/Chinua%20Achebe")
 $authorOutput = @"
 Task 4: Get Books by Author
 ============================
@@ -69,15 +92,15 @@ Command:
 curl.exe -s http://localhost:5000/author/Chinua%20Achebe
 
 Output:
+$authorRaw
 "@
-$authorResponse = curl.exe -s "$BASE/author/Chinua%20Achebe"
-$authorOutput += "`n$authorResponse`n"
-Set-Content -Path "$EVIDENCE\getbooksbyauthor.txt" -Value $authorOutput -Encoding UTF8
+Save-EvidenceFile -FileName "getbooksbyauthor.txt" -Content $authorOutput
 
 # ============================
 # 5. getbooksbytitle.txt
 # ============================
 Write-Host "Generating getbooksbytitle.txt..."
+$titleRaw = (curl.exe -s "$BASE/title/Things%20Fall%20Apart")
 $titleOutput = @"
 Task 5: Get Books by Title
 ===========================
@@ -86,15 +109,15 @@ Command:
 curl.exe -s http://localhost:5000/title/Things%20Fall%20Apart
 
 Output:
+$titleRaw
 "@
-$titleResponse = curl.exe -s "$BASE/title/Things%20Fall%20Apart"
-$titleOutput += "`n$titleResponse`n"
-Set-Content -Path "$EVIDENCE\getbooksbytitle.txt" -Value $titleOutput -Encoding UTF8
+Save-EvidenceFile -FileName "getbooksbytitle.txt" -Content $titleOutput
 
 # ============================
 # 6. getbookreview.txt
 # ============================
 Write-Host "Generating getbookreview.txt..."
+$reviewRaw = (curl.exe -s "$BASE/review/1")
 $reviewOutput = @"
 Task 6: Get Book Review
 ========================
@@ -103,54 +126,71 @@ Command:
 curl.exe -s http://localhost:5000/review/1
 
 Output:
+$reviewRaw
 "@
-$reviewResponse = curl.exe -s "$BASE/review/1"
-$reviewOutput += "`n$reviewResponse`n"
-Set-Content -Path "$EVIDENCE\getbookreview.txt" -Value $reviewOutput -Encoding UTF8
+Save-EvidenceFile -FileName "getbookreview.txt" -Content $reviewOutput
 
 # ============================
 # 7. register.txt
 # ============================
 Write-Host "Generating register.txt..."
+$regUser = "newuser_" + (Get-Random -Minimum 1000 -Maximum 9999)
+$regPass = "testpass123"
+
+$regBody = @{ username = $regUser; password = $regPass } | ConvertTo-Json
+$regResObj = Invoke-RestMethod -Uri "$BASE/register" -Method Post -Body $regBody -ContentType "application/json"
+$regRaw = ($regResObj | ConvertTo-Json -Compress)
+
 $registerOutput = @"
 Task 7: Register New User
 ===========================
 
 Command:
-curl.exe -s -X POST http://localhost:5000/register -H "Content-Type: application/json" -d '{\"username\":\"testuser\",\"password\":\"testpass123\"}'
+curl.exe -s -X POST http://localhost:5000/register -H "Content-Type: application/json" -d '{\"username\":\"$regUser\",\"password\":\"$regPass\"}'
 
 Output:
+$regRaw
 "@
-$registerResponse = curl.exe -s -X POST "$BASE/register" -H "Content-Type: application/json" -d '{\"username\":\"testuser\",\"password\":\"testpass123\"}'
-$registerOutput += "`n$registerResponse`n"
-Set-Content -Path "$EVIDENCE\register.txt" -Value $registerOutput -Encoding UTF8
+Save-EvidenceFile -FileName "register.txt" -Content $registerOutput
 
 # ============================
 # 8. login.txt
 # ============================
 Write-Host "Generating login.txt..."
+$loginBody = @{ username = $regUser; password = $regPass } | ConvertTo-Json
+$loginResObj = Invoke-RestMethod -Uri "$BASE/customer/login" -Method Post -Body $loginBody -ContentType "application/json"
+$actualToken = $loginResObj.token
+
+$redactedLoginJson = '{"message":"User successfully logged in","token":"<token>"}'
+
 $loginOutput = @"
 Task 8: User Login
 ===================
 
 Command:
-curl.exe -s -X POST http://localhost:5000/customer/login -H "Content-Type: application/json" -d '{\"username\":\"testuser\",\"password\":\"testpass123\"}'
+curl.exe -s -X POST http://localhost:5000/customer/login -H "Content-Type: application/json" -d '{\"username\":\"$regUser\",\"password\":\"$regPass\"}'
 
 Output:
+$redactedLoginJson
 "@
-$loginResponse = curl.exe -s -X POST "$BASE/customer/login" -H "Content-Type: application/json" -d '{\"username\":\"testuser\",\"password\":\"testpass123\"}'
-$loginOutput += "`n$loginResponse`n"
-
-# Extract token from response
-$tokenObj = $loginResponse | ConvertFrom-Json
-$token = $tokenObj.token
-
-Set-Content -Path "$EVIDENCE\login.txt" -Value $loginOutput -Encoding UTF8
+Save-EvidenceFile -FileName "login.txt" -Content $loginOutput
 
 # ============================
 # 9. reviewadded.txt
 # ============================
 Write-Host "Generating reviewadded.txt..."
+$addReviewObj = Invoke-RestMethod -Uri "$BASE/customer/auth/review/1?review=This+is+a+great+book!" -Method Put -Headers @{ Authorization = "Bearer $actualToken" }
+$addReviewRaw = ($addReviewObj | ConvertTo-Json -Compress)
+
+$verifyAddObj = Invoke-RestMethod -Uri "$BASE/review/1" -Method Get
+$verifyAddRaw = ($verifyAddObj | ConvertTo-Json -Compress)
+
+$updateReviewObj = Invoke-RestMethod -Uri "$BASE/customer/auth/review/1?review=Updated+review+for+this+classic+novel" -Method Put -Headers @{ Authorization = "Bearer $actualToken" }
+$updateReviewRaw = ($updateReviewObj | ConvertTo-Json -Compress)
+
+$verifyUpdateObj = Invoke-RestMethod -Uri "$BASE/review/1" -Method Get
+$verifyUpdateRaw = ($verifyUpdateObj | ConvertTo-Json -Compress)
+
 $reviewAddOutput = @"
 Task 9: Add/Modify Book Review
 ================================
@@ -159,30 +199,32 @@ Command (Add Review):
 curl.exe -s -X PUT "http://localhost:5000/customer/auth/review/1?review=This+is+a+great+book!" -H "Authorization: Bearer <token>"
 
 Output:
+$addReviewRaw
+
+Verification - Get review after adding:
+Command: curl.exe -s http://localhost:5000/review/1
+Output: $verifyAddRaw
+
+Command (Update Review):
+curl.exe -s -X PUT "http://localhost:5000/customer/auth/review/1?review=Updated+review+for+this+classic+novel" -H "Authorization: Bearer <token>"
+Output: $updateReviewRaw
+
+Verification - Get review after update:
+Command: curl.exe -s http://localhost:5000/review/1
+Output: $verifyUpdateRaw
 "@
-$reviewAddResponse = curl.exe -s -X PUT "$BASE/customer/auth/review/1?review=This+is+a+great+book!" -H "Authorization: Bearer $token"
-$reviewAddOutput += "`n$reviewAddResponse`n"
-
-$reviewAddOutput += "`nVerification - Get review after adding:`n"
-$reviewAddOutput += "Command: curl.exe -s http://localhost:5000/review/1`n"
-$reviewVerify = curl.exe -s "$BASE/review/1"
-$reviewAddOutput += "Output: $reviewVerify`n"
-
-$reviewAddOutput += "`nCommand (Update Review):`n"
-$reviewAddOutput += 'curl.exe -s -X PUT "http://localhost:5000/customer/auth/review/1?review=Updated+review+for+this+classic+novel" -H "Authorization: Bearer <token>"' + "`n"
-$reviewUpdateResponse = curl.exe -s -X PUT "$BASE/customer/auth/review/1?review=Updated+review+for+this+classic+novel" -H "Authorization: Bearer $token"
-$reviewAddOutput += "Output: $reviewUpdateResponse`n"
-
-$reviewAddOutput += "`nVerification - Get review after update:`n"
-$reviewVerify2 = curl.exe -s "$BASE/review/1"
-$reviewAddOutput += "Output: $reviewVerify2`n"
-
-Set-Content -Path "$EVIDENCE\reviewadded.txt" -Value $reviewAddOutput -Encoding UTF8
+Save-EvidenceFile -FileName "reviewadded.txt" -Content $reviewAddOutput
 
 # ============================
 # 10. deletereview.txt
 # ============================
 Write-Host "Generating deletereview.txt..."
+$deleteObj = Invoke-RestMethod -Uri "$BASE/customer/auth/review/1" -Method Delete -Headers @{ Authorization = "Bearer $actualToken" }
+$deleteRaw = ($deleteObj | ConvertTo-Json -Compress)
+
+$verifyDeleteObj = Invoke-RestMethod -Uri "$BASE/review/1" -Method Get
+$verifyDeleteRaw = ($verifyDeleteObj | ConvertTo-Json -Compress)
+
 $deleteOutput = @"
 Task 10: Delete Book Review
 =============================
@@ -191,16 +233,13 @@ Command:
 curl.exe -s -X DELETE "http://localhost:5000/customer/auth/review/1" -H "Authorization: Bearer <token>"
 
 Output:
+$deleteRaw
+
+Verification - Get review after deletion:
+Command: curl.exe -s http://localhost:5000/review/1
+Output: $verifyDeleteRaw
 "@
-$deleteResponse = curl.exe -s -X DELETE "$BASE/customer/auth/review/1" -H "Authorization: Bearer $token"
-$deleteOutput += "`n$deleteResponse`n"
-
-$deleteOutput += "`nVerification - Get review after deletion:`n"
-$deleteOutput += "Command: curl.exe -s http://localhost:5000/review/1`n"
-$deleteVerify = curl.exe -s "$BASE/review/1"
-$deleteOutput += "Output: $deleteVerify`n"
-
-Set-Content -Path "$EVIDENCE\deletereview.txt" -Value $deleteOutput -Encoding UTF8
+Save-EvidenceFile -FileName "deletereview.txt" -Content $deleteOutput
 
 # ============================
 # 11. generaljs_url.txt
@@ -213,8 +252,10 @@ Task 11: general.js GitHub URL
 The general.js file is located at:
 https://github.com/ajstarks117/expressBookReviews/blob/main/final_project/router/general.js
 "@
-Set-Content -Path "$EVIDENCE\generaljs_url.txt" -Value $generalJsOutput -Encoding UTF8
+Save-EvidenceFile -FileName "generaljs_url.txt" -Content $generalJsOutput
 
 Write-Host "`nAll evidence files generated successfully!"
-Write-Host "Evidence files are in: $EVIDENCE"
-Get-ChildItem $EVIDENCE -Filter "*.txt" | ForEach-Object { Write-Host "  - $($_.Name)" }
+foreach ($dir in $EVIDENCE_DIRS) {
+    Write-Host "`nDirectory: $dir"
+    Get-ChildItem $dir -Filter "*.txt" | ForEach-Object { Write-Host "  - $($_.Name)" }
+}

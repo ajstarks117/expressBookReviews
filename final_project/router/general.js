@@ -70,7 +70,13 @@ public_users.get('/isbn/:isbn', function (req, res) {
 // Task 3 & Task 12: Get book details based on author
 // Implemented as an asynchronous handler using Promises and async/await
 public_users.get('/author/:author', async function (req, res) {
-    const authorParam = req.params.author.toLowerCase();
+    let authorParam = req.params.author;
+    try {
+        authorParam = decodeURIComponent(authorParam);
+    } catch (e) {
+        // Fallback to raw param if decoding fails
+    }
+    authorParam = authorParam.trim().toLowerCase();
 
     const findBooksByAuthor = (authorName) => {
         return new Promise((resolve, reject) => {
@@ -78,9 +84,10 @@ public_users.get('/author/:author', async function (req, res) {
             const keys = Object.keys(books);
 
             keys.forEach((key) => {
-                if (books[key].author.toLowerCase() === authorName) {
+                if (books[key].author && books[key].author.toLowerCase() === authorName) {
                     matchedBooks.push({
                         isbn: key,
+                        author: books[key].author,
                         title: books[key].title,
                         reviews: books[key].reviews
                     });
@@ -106,7 +113,13 @@ public_users.get('/author/:author', async function (req, res) {
 // Task 4 & Task 13: Get all books based on title
 // Implemented as an asynchronous handler using Promises and async/await
 public_users.get('/title/:title', async function (req, res) {
-    const titleParam = req.params.title.toLowerCase();
+    let titleParam = req.params.title;
+    try {
+        titleParam = decodeURIComponent(titleParam);
+    } catch (e) {
+        // Fallback to raw param if decoding fails
+    }
+    titleParam = titleParam.trim().toLowerCase();
 
     const findBooksByTitle = (bookTitle) => {
         return new Promise((resolve, reject) => {
@@ -114,10 +127,11 @@ public_users.get('/title/:title', async function (req, res) {
             const keys = Object.keys(books);
 
             keys.forEach((key) => {
-                if (books[key].title.toLowerCase() === bookTitle) {
+                if (books[key].title && books[key].title.toLowerCase() === bookTitle) {
                     matchedBooks.push({
                         isbn: key,
                         author: books[key].author,
+                        title: books[key].title,
                         reviews: books[key].reviews
                     });
                 }
@@ -151,6 +165,15 @@ public_users.get('/review/:isbn', function (req, res) {
 // ============================================================================
 // Tasks 10-13: Node.js client functions using Axios and Promises / Async-Await
 // ============================================================================
+
+// Task 10: Get all books available in the shop using Axios with Promises (.then / .catch)
+function getBooksAxiosPromise() {
+    return axios.get(`${BASE_URL}/`)
+        .then((response) => response.data)
+        .catch((error) => {
+            throw error.response ? error.response.data : error;
+        });
+}
 
 // Task 10: Get all books available in the shop using async/await with Axios
 async function getBooksAxiosAsync() {
@@ -192,6 +215,7 @@ async function getBooksByTitleAxiosAsync(title) {
 }
 
 module.exports.general = public_users;
+module.exports.getBooksAxiosPromise = getBooksAxiosPromise;
 module.exports.getBooksAxiosAsync = getBooksAxiosAsync;
 module.exports.getBookByISBNAxiosPromise = getBookByISBNAxiosPromise;
 module.exports.getBooksByAuthorAxiosAsync = getBooksByAuthorAxiosAsync;

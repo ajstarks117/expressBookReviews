@@ -1,0 +1,8 @@
+﻿Task 3: Get Book by ISBN
+========================
+
+Command:
+curl.exe -s http://localhost:5000/isbn/1
+
+Output:
+{"author":"Chinua Achebe","title":"Things Fall Apart","reviews":{}}

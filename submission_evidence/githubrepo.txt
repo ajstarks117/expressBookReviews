@@ -1,0 +1,11 @@
+﻿Task 1: GitHub Repository Verification
+=======================================
+
+Command:
+curl.exe -s https://api.github.com/repos/ajstarks117/expressBookReviews | jq '.parent.full_name'
+
+Output:
+"ibm-developer-skills-network/expressBookReviews"
+
+Verification: The repository ajstarks117/expressBookReviews is a fork of ibm-developer-skills-network/expressBookReviews.
+Repository URL: https://github.com/ajstarks117/expressBookReviews

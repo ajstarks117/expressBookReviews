@@ -5,5 +5,4 @@ Command:
 curl.exe -s http://localhost:5000/title/Things%20Fall%20Apart
 
 Output:
-{"booksbytitle":[{"isbn":"1","author":"Chinua Achebe","reviews":{}}]}
-
+{"booksbytitle":[{"isbn":"1","author":"Chinua Achebe","title":"Things Fall Apart","reviews":{}}]}

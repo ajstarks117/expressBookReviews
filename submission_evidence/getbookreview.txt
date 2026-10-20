@@ -1,0 +1,8 @@
+﻿Task 6: Get Book Review
+========================
+
+Command:
+curl.exe -s http://localhost:5000/review/1
+
+Output:
+{}
